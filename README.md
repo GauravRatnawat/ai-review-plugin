@@ -1,44 +1,175 @@
 # AI Code Review on Save — IntelliJ Plugin
 
-An IntelliJ plugin that triggers an AI review of unstaged git diffs on every file save. Supports **GitHub Copilot** (default) and **Claude** as providers. Findings appear inline in the editor: red underlines for bugs, yellow for warnings, blue for info. Content-hash caching ensures unchanged files don't waste API calls.
+An IntelliJ plugin that reviews your code changes using AI every time you save a file. It sends your git diff to **GitHub Models** or **Claude** and renders findings directly in the editor — Error Lens style — with colored inline text, underlines, and tooltips.
+
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ_IDEA-2025.3+-blue?logo=intellijidea&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?logo=kotlin&logoColor=white)
+![Java](https://img.shields.io/badge/JDK-21-orange?logo=openjdk&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## Why This Exists
+## Features
 
-File watchers lose output. macOS notifications vanish in 5 seconds. MCP doesn't work in pipe mode. The right abstraction was IntelliJ's `ExternalAnnotator` API — a three-phase lifecycle designed for exactly this: collect info on the EDT, run an external tool on a background thread, apply annotations back on the EDT. Clean, non-blocking, native.
+- **Inline findings** — Error Lens-style colored text at the end of each flagged line
+- **Underline annotations** — Red (error), yellow (warning), blue (info) underlines with hover tooltips
+- **Multiple AI providers** — GitHub Models (GPT-4.1, Llama, DeepSeek, Grok, etc.) or Claude (Anthropic)
+- **Auto-review on save** — Triggers on every Cmd+S / Ctrl+S
+- **Content-hash caching** — SHA-256 hash per file; unchanged files skip the API call entirely
+- **Light/dark theme support** — Colors adapt to your IDE theme
 
 ---
 
 ## How It Works
 
 ```
-File Save → BulkFileListener → DaemonCodeAnalyzer.restart()
-                                        │
-                          ┌─────────────────────────────────┐
-                          │      ExternalAnnotator API      │
-                          ├─────────────────────────────────┤
-                          │ 1. collectInformation (EDT)     │
-                          │    → file content                │
-                          │    → SHA-256 content hash        │
-                          │    → git diff (unstaged)         │
-                          ├─────────────────────────────────┤
-                          │ 2. doAnnotate (background)      │
-                          │    → check cache (hash hit?)     │
-                          │    → if miss: call AI provider   │
-                          │      ┌─────────┐ ┌────────────┐ │
-                          │      │ Copilot │ │   Claude   │ │
-                          │      │(default)│ │ (optional) │ │
-                          │      └─────────┘ └────────────┘ │
-                          │    → cache findings              │
-                          ├─────────────────────────────────┤
-                          │ 3. apply (EDT)                  │
-                          │    → red underline (ERROR)       │
-                          │    → yellow underline (WARNING)  │
-                          │    → blue underline (INFO)       │
-                          │    → hover tooltip               │
-                          └─────────────────────────────────┘
+Save File (Cmd+S)
+    |
+    v
+BulkFileListener --> DaemonCodeAnalyzer.restart()
+                          |
+            +---------------------------+
+            |    ExternalAnnotator API   |
+            +---------------------------+
+            | 1. collectInformation (EDT)|
+            |    - file content          |
+            |    - SHA-256 content hash  |
+            |    - git diff (unstaged)   |
+            +---------------------------+
+            | 2. doAnnotate (background) |
+            |    - cache hit? return     |
+            |    - cache miss? call AI:  |
+            |      [GitHub Models]       |
+            |      [Claude API]          |
+            |    - cache findings        |
+            +---------------------------+
+            | 3. apply (EDT)             |
+            |    - underline annotations |
+            |    - inline inlay text     |
+            |    - hover tooltips        |
+            +---------------------------+
 ```
+
+---
+
+## Quick Start
+
+### 1. Clone and build
+
+```bash
+git clone https://github.com/GauravRatnawat/ai-review-plugin.git
+cd ai-review-plugin
+./gradlew buildPlugin
+```
+
+The plugin ZIP will be at `build/distributions/ai-review-plugin-1.0.0.zip`.
+
+### 2. Install in IntelliJ
+
+1. Open IntelliJ IDEA
+2. Go to **Settings** (Cmd+, / Ctrl+Alt+S) -> **Plugins** -> gear icon -> **Install Plugin from Disk...**
+3. Select the ZIP file from step 1
+4. Restart IntelliJ
+
+### 3. Configure your API key
+
+1. Go to **Settings** -> **Tools** -> **AI Code Review**
+2. Choose your **AI Provider** (GitHub Models is the default)
+3. Paste your **API key / token**
+4. Click **OK**
+
+### 4. Start coding
+
+Open any file with git changes, make an edit, and press **Cmd+S**. Findings will appear inline within a few seconds.
+
+---
+
+## Getting an API Key
+
+### GitHub Models (default provider)
+
+GitHub Models uses the GitHub Models inference API with your GitHub Personal Access Token.
+
+1. Go to [github.com/settings/tokens](https://github.com/settings/tokens?type=beta)
+2. Click **Generate new token** -> **Fine-grained token**
+3. Name it (e.g., `ai-review-plugin`)
+4. Under **Permissions** -> **Account permissions**, set **Models** to **Read**
+5. Click **Generate token**
+6. Copy the token (starts with `github_pat_...`)
+
+> You need an active [GitHub Copilot](https://github.com/features/copilot) subscription for the Models API to work.
+
+### Claude (Anthropic)
+
+1. Go to [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+2. Create a new API key
+3. Copy the key (starts with `sk-ant-...`)
+
+---
+
+## Configuration
+
+**Settings** -> **Tools** -> **AI Code Review**
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Enable AI Code Review** | On | Master toggle |
+| **Review on file save** | On | Automatically review when you save |
+| **AI Provider** | GitHub Models (GPT-4.1) | Choose provider and model tier |
+| **Token / API Key** | *(empty)* | Your GitHub PAT or Anthropic API key |
+| **Model** | `openai/gpt-4.1` | Model to use (dropdown + custom input) |
+| **Max diff lines** | `500` | Truncate large diffs to control cost |
+
+When you switch providers, the model dropdown updates automatically with available models for that provider.
+
+### Available Models
+
+| Provider | Models |
+|----------|--------|
+| **GitHub Models** | `openai/gpt-4.1`, `openai/gpt-4o`, `openai/o3`, `meta/meta-llama-3.1-405b-instruct`, `deepseek/deepseek-r1-0528`, `xai/grok-3`, and more |
+| **GitHub Models (Mini)** | `openai/gpt-4.1-mini`, `openai/gpt-4.1-nano`, `openai/o3-mini`, `openai/o4-mini`, `xai/grok-3-mini`, and more |
+| **Claude** | `claude-sonnet-4-5-20250514`, `claude-opus-4-5`, `claude-3-7-sonnet-20250219` |
+
+You can also type any custom model name in the dropdown.
+
+---
+
+## Severity Levels
+
+| Severity | Inline Style | Underline | What It Catches |
+|----------|-------------|-----------|-----------------|
+| **ERROR** | Red text with cross icon | Red underline | Bugs, logic errors, null safety issues, resource leaks |
+| **WARNING** | Amber text with warning icon | Yellow underline | Code smells, missing error handling, performance issues |
+| **INFO** | Blue text with info icon | Blue underline | Style improvements, naming suggestions, better idioms |
+
+Hover over any underlined code to see the full finding and suggested fix in a tooltip.
+
+---
+
+## Supported File Types
+
+The plugin reviews files with these extensions:
+
+**Code:** `.kt`, `.java`, `.py`, `.js`, `.ts`, `.tsx`, `.jsx`, `.go`, `.rs`, `.scala`, `.groovy`, `.kts`
+
+**Config:** `.yaml`, `.yml`, `.json`, `.xml`, `.html`, `.css`, `.sql`, `.properties`, `.toml`, `.gradle`
+
+**Scripts:** `.sh`, `.bash`, `.zsh`
+
+**Docs:** `.md`
+
+Files in `build/`, `out/`, `.gradle/`, `.idea/`, `node_modules/`, `.git/`, and `target/` are automatically skipped.
+
+---
+
+## Requirements
+
+- **IntelliJ IDEA** 2025.3+ (build 253+)
+- **JDK 21**
+- **Git** installed and available on `PATH`
+- One of:
+  - GitHub Personal Access Token (with Models:Read permission)
+  - Anthropic API key
 
 ---
 
@@ -46,174 +177,85 @@ File Save → BulkFileListener → DaemonCodeAnalyzer.restart()
 
 ```
 ai-review-plugin/
-├── build.gradle.kts                          # Gradle build with IntelliJ Platform plugin
-├── settings.gradle.kts
+├── build.gradle.kts                            # Gradle build config
+├── settings.gradle.kts                         # Project name
+├── gradle.properties                           # Gradle settings
 └── src/main/
     ├── kotlin/com/aireview/plugin/
     │   ├── annotator/
-    │   │   └── AiReviewExternalAnnotator.kt  # Core: 3-phase ExternalAnnotator lifecycle
+    │   │   ├── AiReviewExternalAnnotator.kt    # Core 3-phase annotator lifecycle
+    │   │   └── InlineFindingRenderer.kt        # Error Lens-style inline renderer
     │   ├── cache/
-    │   │   └── ReviewCacheService.kt         # Content-hash cache (SHA-256 → findings)
-    │   ├── copilot/
-    │   │   └── CopilotApiClient.kt           # GitHub Copilot chat completions client
+    │   │   └── ReviewCacheService.kt           # Thread-safe SHA-256 content cache
     │   ├── claude/
-    │   │   └── ClaudeApiClient.kt            # Anthropic Claude Messages API client
+    │   │   ├── ClaudeApiClient.kt              # Anthropic Messages API client
+    │   │   └── CopilotApiClient.kt             # GitHub Models API client
     │   ├── git/
-    │   │   └── GitDiffService.kt             # git diff execution (unstaged + HEAD)
+    │   │   └── GitDiffService.kt               # Git diff retrieval (unstaged + HEAD)
     │   ├── listener/
-    │   │   └── FileSaveListener.kt           # BulkFileListener → triggers re-analysis
+    │   │   └── FileSaveListener.kt             # File save listener -> triggers review
     │   ├── model/
-    │   │   ├── AiReviewInfo.kt               # Data passed between annotator phases
-    │   │   └── ReviewFinding.kt              # Finding model (line, severity, message)
+    │   │   ├── AiReviewInfo.kt                 # Annotator phase data transfer object
+    │   │   └── ReviewFinding.kt                # Finding model + Severity enum
     │   └── settings/
-    │       ├── AiReviewConfigurable.kt       # Settings UI panel (provider dropdown)
-    │       └── AiReviewSettings.kt           # Persistent settings + AiProvider enum
+    │       ├── AiReviewConfigurable.kt         # Settings UI panel
+    │       └── AiReviewSettings.kt             # Persistent settings + AiProvider enum
     └── resources/META-INF/
-        └── plugin.xml                        # Plugin descriptor
+        └── plugin.xml                          # Plugin descriptor
 ```
 
 ---
 
-## Supported AI Providers
+## Development
 
-| Provider               | Endpoint                                                    | Auth                             | Default Model              |
-|------------------------|-------------------------------------------------------------|----------------------------------|----------------------------|
-| **GitHub Copilot** ⭐   | `https://models.inference.ai.azure.com/chat/completions`    | GitHub PAT (Bearer)              | `gpt-4o`                   |
-| **Claude (Anthropic)** | `https://api.anthropic.com/v1/messages`                     | Anthropic API key (`x-api-key`)  | `claude-sonnet-4-20250514` |
-
-GitHub Copilot is the **default provider**. It uses the GitHub Models inference API — available to all GitHub Copilot subscribers. Switch between providers at any time in settings — the model name auto-updates when you change providers.
-
----
-
-## Requirements
-
-- **IntelliJ IDEA** 2024.3+ (builds 243–253.*)
-- **JDK 21**
-- **Git** available on `PATH`
-- One of:
-  - **GitHub Copilot**: A GitHub Personal Access Token (see [How to Get a GitHub Token](#how-to-get-a-github-token))
-  - **Claude**: API key from [Anthropic Console](https://console.anthropic.com/)
-
----
-
-## How to Get a GitHub Token
-
-The GitHub Copilot provider uses the **GitHub Models API**, which authenticates with a standard GitHub Personal Access Token (PAT). No special scopes are required — access is tied to your GitHub Copilot subscription.
-
-### Steps
-
-1. Go to [github.com/settings/tokens](https://github.com/settings/tokens?type=beta)
-2. Click **"Generate new token"** → choose **Fine-grained token**
-3. Give it a name (e.g. `ai-review-plugin`)
-4. Set expiration as desired
-5. Under **Permissions → Account permissions**, set **"Models"** to **Read**
-6. Click **"Generate token"**
-7. Copy the token (starts with `github_pat_...`)
-8. In IntelliJ: **Settings → Tools → AI Code Review** → paste it into the **GitHub Token** field
-
-> **Note**: You must have an active **GitHub Copilot** subscription (Individual, Business, or Enterprise) on the same GitHub account for the Models API to work.
-
----
-
-## Installation
-
-### From ZIP (Recommended)
-
-1. Build the plugin:
-   ```bash
-   cd ai-review-plugin
-   ./gradlew buildPlugin
-   ```
-2. The ZIP is at `build/distributions/ai-review-plugin-1.0.0.zip`
-3. In IntelliJ: **Settings → Plugins → ⚙️ → Install Plugin from Disk…** → select the ZIP
-4. Restart IntelliJ
-
-### From Source (Development)
+### Run in sandbox
 
 ```bash
-cd ai-review-plugin
 ./gradlew runIde
 ```
 
-This launches a sandboxed IntelliJ instance with the plugin loaded.
+This launches a sandboxed IntelliJ instance with the plugin loaded. Changes are isolated from your main IDE.
 
----
+### Build distributable
 
-## Configuration
+```bash
+./gradlew buildPlugin
+```
 
-**Settings → Tools → AI Code Review**
-
-| Setting            | Default               | Description                                          |
-|--------------------|-----------------------|------------------------------------------------------|
-| **Enable**         | `true`                | Master toggle for the plugin                         |
-| **Review on save** | `true`                | Trigger review when a file is saved                  |
-| **AI Provider**    | `GitHub Copilot`      | Choose between GitHub Copilot and Claude             |
-| **GitHub Token / API Key** | *(empty)*     | Token for the selected provider                      |
-| **Model**          | `gpt-4o`              | Model name (auto-switches with provider)             |
-| **Max diff lines** | `500`                 | Truncate diffs longer than this                      |
-
-When you switch providers in the dropdown, the label and default model update automatically:
-- **GitHub Copilot** → "GitHub Token:" + `gpt-4o`
-- **Claude** → "Anthropic API Key:" + `claude-sonnet-4-20250514`
-
----
-
-## Severity Levels
-
-| Severity    | Editor Style       | What It Catches                                        |
-|-------------|--------------------|--------------------------------------------------------|
-| **ERROR**   | 🔴 Red underline   | Bugs, logic errors, null safety, resource leaks        |
-| **WARNING** | 🟡 Yellow underline| Code smells, missing error handling, DDD violations    |
-| **INFO**    | 🔵 Blue underline  | Style, naming, better Kotlin idioms                    |
-
-Hover over any underlined code to see the full finding and suggested fix in a tooltip.
-
----
-
-## Caching
-
-The plugin computes a SHA-256 hash of each file's content. If the hash matches a previous review, cached findings are returned instantly — no API call. The cache is per-session (in-memory) and invalidates automatically when file content changes.
-
----
-
-## Supported File Types
-
-Kotlin, Java, Python, JavaScript, TypeScript, Go, Rust, Scala, Groovy, YAML, JSON, XML, HTML, CSS, SQL, Shell scripts, Markdown, Properties, TOML, Gradle.
-
-Files in `build/`, `out/`, `.gradle/`, `.idea/`, `node_modules/`, `.git/`, and `target/` directories are automatically skipped.
+Output: `build/distributions/ai-review-plugin-1.0.0.zip`
 
 ---
 
 ## Troubleshooting
 
-| Problem                        | Solution                                                         |
-|--------------------------------|------------------------------------------------------------------|
-| No annotations appearing       | Check **Settings → Tools → AI Code Review** is enabled           |
-| "Token not configured"         | Add your GitHub token or Anthropic API key in settings           |
-| No diff detected               | The file must have unstaged or uncommitted git changes            |
-| Annotations stale after edit   | Save the file (Cmd+S) to trigger a new review                   |
-| Slow response                  | Reduce **Max diff lines** or switch to a faster model            |
-| Wrong model after switching    | The model auto-updates; if you customised it, clear the field    |
+| Problem | Solution |
+|---------|----------|
+| No annotations appearing | Check **Settings -> Tools -> AI Code Review** is enabled |
+| "Token not configured" in logs | Add your GitHub token or Anthropic API key in settings |
+| No diff detected | The file must have unstaged or uncommitted git changes |
+| Annotations stale after edit | Save the file (Cmd+S) to trigger a new review |
+| Slow response | Reduce **Max diff lines** or switch to a smaller/faster model |
+| Wrong model after switching provider | The model auto-updates; if you customized it, select a new one from the dropdown |
 
-Check the IntelliJ log (**Help → Show Log in Finder**) for detailed diagnostics — the plugin logs under `com.aireview.plugin`.
+Check the IntelliJ log (**Help -> Show Log in Finder/Explorer**) for diagnostics. The plugin logs under `com.aireview.plugin`.
 
 ---
 
 ## Tech Stack
 
-| Component         | Technology                                              |
-|-------------------|---------------------------------------------------------|
-| Language          | Kotlin 2.1.0                                            |
-| JDK               | 21                                                      |
-| Build             | Gradle + IntelliJ Platform Gradle Plugin 2.2.1          |
-| Target IDE        | IntelliJ IDEA 2024.3+                                   |
-| AI (default)      | GitHub Copilot (OpenAI-compatible chat completions)      |
-| AI (alternative)  | Claude (Anthropic Messages API v2023-06-01)              |
-| JSON parsing      | Gson 2.11.0                                              |
-| Hashing           | SHA-256 (java.security.MessageDigest)                    |
+| Component | Technology |
+|-----------|------------|
+| Language | Kotlin 2.1.0 |
+| JDK | 21 |
+| Build | Gradle + IntelliJ Platform Gradle Plugin 2.11.0 |
+| Target IDE | IntelliJ IDEA 2025.3+ |
+| AI (default) | GitHub Models (OpenAI-compatible chat completions) |
+| AI (alternative) | Claude (Anthropic Messages API v2023-06-01) |
+| JSON | Gson 2.11.0 |
+| Caching | SHA-256 content hash (in-memory, bounded to 200 entries) |
 
 ---
 
 ## License
 
-Internal tool — not published to JetBrains Marketplace.
+MIT License. See [LICENSE](LICENSE) for details.

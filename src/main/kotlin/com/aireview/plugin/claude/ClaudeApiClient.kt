@@ -126,7 +126,8 @@ $diff
             val content = root.getAsJsonArray("content")
             if (content == null || content.size() == 0) return emptyList()
 
-            val textBlock = content.first { it.asJsonObject.get("type").asString == "text" }
+            val textBlock = content.firstOrNull { it.asJsonObject.get("type").asString == "text" }
+                ?: return emptyList()
             val text = textBlock.asJsonObject.get("text").asString.trim()
 
             parseJsonFindings(text)

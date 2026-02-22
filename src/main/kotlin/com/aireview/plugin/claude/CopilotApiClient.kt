@@ -128,7 +128,7 @@ $diff
 
             val message = choices[0].asJsonObject.getAsJsonObject("message")
             val text = message.get("content").asString.trim()
-            LOG.info("API response text: ${text.take(500)}")
+            LOG.debug("API response text: ${text.take(500)}")
 
             parseJsonFindings(text)
         } catch (e: Exception) {

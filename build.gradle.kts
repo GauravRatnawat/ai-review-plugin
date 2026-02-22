@@ -14,10 +14,9 @@ repositories {
     }
 }
 
-
 dependencies {
     intellijPlatform {
-        local(file("${System.getProperty("user.home")}/Applications/IntelliJ IDEA.app"))
+        intellijIdea("2025.3.3")
         bundledPlugin("com.intellij.java")
     }
 
@@ -35,21 +34,5 @@ tasks {
 
     buildSearchableOptions {
         enabled = false
-    }
-
-    // Disable incompatible host plugins in the sandbox to prevent NoClassDefFoundError
-    prepareSandbox {
-        doLast {
-            val configDir = intellijPlatform.sandboxContainer.get().asFile
-                .resolve("config")
-            configDir.mkdirs()
-            val disabledPlugins = configDir.resolve("disabled_plugins.txt")
-            val existing = if (disabledPlugins.exists()) disabledPlugins.readText() else ""
-            val toDisable = listOf("com.github.copilot")
-            val missing = toDisable.filter { it !in existing }
-            if (missing.isNotEmpty()) {
-                disabledPlugins.appendText(missing.joinToString("\n", prefix = "\n"))
-            }
-        }
     }
 }

@@ -5,9 +5,10 @@
     <vendor>AI Review</vendor>
 
     <description><![CDATA[
-        Triggers Claude AI review of unstaged git diffs on every file save.
-        Shows findings inline: red underlines for bugs, yellow for warnings, blue for info.
-        Uses content-hash caching to avoid redundant API calls.
+        AI-powered code review on every file save. Sends git diffs to GitHub Models or
+        Claude (Anthropic) and renders findings inline — Error Lens style — with underlines
+        and tooltips. Supports ERROR/WARNING/INFO severity levels. Content-hash caching
+        avoids redundant API calls for unchanged files.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
