@@ -133,13 +133,15 @@ class AiReviewConfigurable : Configurable {
         val settings = AiReviewSettings.getInstance()
         val state = settings.state
         state.provider = (providerComboBox!!.selectedItem as AiProvider).name
-        state.apiKey = String(apiKeyField!!.password)
         state.modelName =
             modelComboBox!!.selectedItem?.toString() ?: (providerComboBox!!.selectedItem as AiProvider).defaultModel
         state.enabled = enabledCheckbox!!.isSelected
         state.maxDiffLines = maxDiffLinesSpinner!!.value as Int
         state.reviewOnSave = reviewOnSaveCheckbox!!.isSelected
         settings.loadState(state)
+
+        // Store API key securely via PasswordSafe (not in XML)
+        settings.setApiKey(String(apiKeyField!!.password))
     }
 
     override fun reset() {

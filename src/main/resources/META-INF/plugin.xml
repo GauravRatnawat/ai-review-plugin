@@ -1,15 +1,48 @@
 <idea-plugin>
     <id>com.aireview.plugin</id>
-    <name>AI Code Review on Save</name>
+    <name>AI Code Review</name>
     <version>1.0.0</version>
-    <vendor>AI Review</vendor>
+
+    <vendor email="gaurav.ratnawat.dev@gmail.com"
+            url="https://github.com/GauravRatnawat/ai-review-plugin">
+        Gaurav Ratnawat
+    </vendor>
 
     <description><![CDATA[
-        AI-powered code review on every file save. Sends git diffs to GitHub Models or
-        Claude (Anthropic) and renders findings inline — Error Lens style — with underlines
-        and tooltips. Supports ERROR/WARNING/INFO severity levels. Content-hash caching
-        avoids redundant API calls for unchanged files.
+        <p>AI-powered code review on every file save. Sends git diffs to <b>GitHub Models</b> or
+        <b>Claude (Anthropic)</b> and renders findings directly in the editor &mdash; Error Lens
+        style &mdash; with colored inline text, underlines, and hover tooltips.</p>
+
+        <h3>Features</h3>
+        <ul>
+            <li>Automatic code review triggered on file save</li>
+            <li>Inline findings with severity icons at the end of each flagged line</li>
+            <li>Underline annotations: red (error), yellow (warning), blue (info)</li>
+            <li>Hover tooltips with detailed findings and suggested fixes</li>
+            <li>Multiple AI providers: GitHub Models (GPT-4.1, Llama, DeepSeek, Grok) or Claude</li>
+            <li>SHA-256 content-hash caching to skip unchanged files</li>
+            <li>Light and dark theme support</li>
+        </ul>
+
+        <h3>Privacy</h3>
+        <p>This plugin sends <b>file content and git diffs</b> to external AI APIs
+        (GitHub Models or Anthropic) for code review. No data is collected or stored
+        by the plugin author. API keys are stored securely using the IDE's built-in
+        credential store (PasswordSafe). Review only occurs on files you actively
+        save while the plugin is enabled.</p>
     ]]></description>
+
+    <change-notes><![CDATA[
+        <h2>1.0.0</h2>
+        <ul>
+            <li>Initial release</li>
+            <li>AI-powered code review with Error Lens-style inline annotations</li>
+            <li>GitHub Models and Claude (Anthropic) provider support</li>
+            <li>Content-hash caching to minimize API calls</li>
+            <li>Configurable provider, model, and diff size settings</li>
+            <li>Secure API key storage via PasswordSafe</li>
+        </ul>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
 
