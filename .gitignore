@@ -1,0 +1,23 @@
+# Build
+build/
+out/
+
+# Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+
+# IntelliJ Platform Plugin SDK
+.intellijPlatform/
+
+# Kotlin
+.kotlin/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store

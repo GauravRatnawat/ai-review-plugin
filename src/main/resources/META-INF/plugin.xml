@@ -1,0 +1,44 @@
+<idea-plugin>
+    <id>com.aireview.plugin</id>
+    <name>AI Code Review on Save</name>
+    <version>1.0.0</version>
+    <vendor>AI Review</vendor>
+
+    <description><![CDATA[
+        Triggers Claude AI review of unstaged git diffs on every file save.
+        Shows findings inline: red underlines for bugs, yellow for warnings, blue for info.
+        Uses content-hash caching to avoid redundant API calls.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- ExternalAnnotator for inline annotations -->
+        <externalAnnotator
+                language=""
+                implementationClass="com.aireview.plugin.annotator.AiReviewExternalAnnotator"/>
+
+        <!-- Persistent settings -->
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.aireview.plugin.settings.AiReviewConfigurable"
+                id="com.aireview.plugin.settings"
+                displayName="AI Code Review"/>
+
+        <applicationService
+                serviceImplementation="com.aireview.plugin.settings.AiReviewSettings"/>
+
+        <applicationService
+                serviceImplementation="com.aireview.plugin.cache.ReviewCacheService"/>
+
+        <notificationGroup id="AI Code Review"
+                           displayType="BALLOON"
+                           isLogByDefault="true"/>
+    </extensions>
+
+    <applicationListeners>
+        <listener
+                class="com.aireview.plugin.listener.FileSaveListener"
+                topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    </applicationListeners>
+</idea-plugin>
