@@ -2,7 +2,7 @@
 
 An IntelliJ plugin that reviews your code changes using AI every time you save a file. It sends your git diff to **GitHub Models** or **Claude** and renders findings directly in the editor — Error Lens style — with colored inline text, underlines, and tooltips.
 
-![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ_IDEA-2025.3+-blue?logo=intellijidea&logoColor=white)
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ_IDEA-2024.1+-blue?logo=intellijidea&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?logo=kotlin&logoColor=white)
 ![Java](https://img.shields.io/badge/JDK-21-orange?logo=openjdk&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -164,7 +164,7 @@ Files in `build/`, `out/`, `.gradle/`, `.idea/`, `node_modules/`, `.git/`, and `
 
 ## Requirements
 
-- **IntelliJ IDEA** 2025.3+ (build 253+)
+- **IntelliJ IDEA** 2024.1+ (Community or Ultimate), PyCharm, WebStorm, GoLand, etc.
 - **JDK 21**
 - **Git** installed and available on `PATH`
 - One of:
@@ -248,7 +248,7 @@ Check the IntelliJ log (**Help -> Show Log in Finder/Explorer**) for diagnostics
 | Language | Kotlin 2.1.0 |
 | JDK | 21 |
 | Build | Gradle + IntelliJ Platform Gradle Plugin 2.11.0 |
-| Target IDE | IntelliJ IDEA 2025.3+ |
+| Target IDE | IntelliJ IDEA 2024.1+ (all JetBrains IDEs) |
 | AI (default) | GitHub Models (OpenAI-compatible chat completions) |
 | AI (alternative) | Claude (Anthropic Messages API v2023-06-01) |
 | JSON | Gson 2.11.0 |

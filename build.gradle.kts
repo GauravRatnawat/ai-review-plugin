@@ -16,8 +16,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdea("2025.3.3")
-        bundledPlugin("com.intellij.java")
+        intellijIdeaCommunity("2024.3")
     }
 
     implementation("com.google.code.gson:gson:2.11.0")
@@ -29,7 +28,7 @@ kotlin {
 
 tasks {
     patchPluginXml {
-        sinceBuild.set("253")
+        sinceBuild.set("241")
     }
 
     buildSearchableOptions {

@@ -44,7 +44,8 @@ class FileSaveListener : BulkFileListener {
                 val psiFile = psiDocumentManager.getPsiFile(document) ?: continue
 
                 log.debug("File saved, triggering AI review: ${vFile.name}")
-                daemonCodeAnalyzer.restart(psiFile, "AI Code Review: file saved")
+                @Suppress("UnstableApiUsage")
+                daemonCodeAnalyzer.restart(psiFile)
             }
         }
     }
