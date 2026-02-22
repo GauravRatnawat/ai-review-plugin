@@ -20,6 +20,9 @@ dependencies {
     }
 
     implementation("com.google.code.gson:gson:2.11.0")
+
+    testImplementation("io.mockk:mockk:1.13.16")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
 }
 
 kotlin {
@@ -27,6 +30,10 @@ kotlin {
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     patchPluginXml {
         sinceBuild.set("241")
     }
