@@ -175,34 +175,9 @@ Files in `build/`, `out/`, `.gradle/`, `.idea/`, `node_modules/`, `.git/`, and `
 
 ## Project Structure
 
-```
-ai-review-plugin/
-├── build.gradle.kts                            # Gradle build config
-├── settings.gradle.kts                         # Project name
-├── gradle.properties                           # Gradle settings
-└── src/main/
-    ├── kotlin/com/aireview/plugin/
-    │   ├── annotator/
-    │   │   ├── AiReviewExternalAnnotator.kt    # Core 3-phase annotator lifecycle
-    │   │   └── InlineFindingRenderer.kt        # Error Lens-style inline renderer
-    │   ├── cache/
-    │   │   └── ReviewCacheService.kt           # Thread-safe SHA-256 content cache
-    │   ├── claude/
-    │   │   ├── ClaudeApiClient.kt              # Anthropic Messages API client
-    │   │   └── CopilotApiClient.kt             # GitHub Models API client
-    │   ├── git/
-    │   │   └── GitDiffService.kt               # Git diff retrieval (unstaged + HEAD)
-    │   ├── listener/
-    │   │   └── FileSaveListener.kt             # File save listener -> triggers review
-    │   ├── model/
-    │   │   ├── AiReviewInfo.kt                 # Annotator phase data transfer object
-    │   │   └── ReviewFinding.kt                # Finding model + Severity enum
-    │   └── settings/
-    │       ├── AiReviewConfigurable.kt         # Settings UI panel
-    │       └── AiReviewSettings.kt             # Persistent settings + AiProvider enum
-    └── resources/META-INF/
-        └── plugin.xml                          # Plugin descriptor
-```
+* [Annotator](src/main/kotlin/com/aireview/plugin/annotator/): gather diff, call AI, show findings.
+* [Provider clients](src/main/kotlin/com/aireview/plugin/claude/): GitHub Models and Claude API calls.
+* [Settings](src/main/kotlin/com/aireview/plugin/settings/): provider, model, token storage and UI.
 
 ---
 
@@ -218,11 +193,7 @@ This launches a sandboxed IntelliJ instance with the plugin loaded. Changes are 
 
 ### Build distributable
 
-```bash
-./gradlew buildPlugin
-```
-
-Output: `build/distributions/ai-review-plugin-1.0.0.zip`
+See [Quick Start](#1-clone-and-build) for build command and ZIP path.
 
 ---
 
@@ -243,16 +214,7 @@ Check the IntelliJ log (**Help -> Show Log in Finder/Explorer**) for diagnostics
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Language | Kotlin 2.1.0 |
-| JDK | 21 |
-| Build | Gradle + IntelliJ Platform Gradle Plugin 2.11.0 |
-| Target IDE | IntelliJ IDEA 2024.1+ (all JetBrains IDEs) |
-| AI (default) | GitHub Models (OpenAI-compatible chat completions) |
-| AI (alternative) | Claude (Anthropic Messages API v2023-06-01) |
-| JSON | Gson 2.11.0 |
-| Caching | SHA-256 content hash (in-memory, bounded to 200 entries) |
+See [build config](build.gradle.kts) for pinned deps and versions. Cache holds up to 200 files.
 
 ---
 
